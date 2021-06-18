@@ -138,6 +138,7 @@ class TransformerTrainer():
                     logits, labels, _ = self.predict(loader = self.val_loader)
                     res = results_analyses_tools.evaluate_and_aggregate(logits, labels, [self.validation_metric])
                     val_metric_res = res[self.validation_metric]
+                    logging.info(f"Validation metric: {val_metric_res}")
                     if val_metric_res>self.best_eval_metric:
                         self.best_eval_metric = val_metric_res
                     if self.sacred_ex != None:
@@ -155,6 +156,7 @@ class TransformerTrainer():
                 logits, labels, _ = self.predict(loader = self.val_loader)
                 res = results_analyses_tools.evaluate_and_aggregate(logits, labels, [self.validation_metric])
                 val_metric_res = res[self.validation_metric]
+                logging.info(f"Validation metric: {val_metric_res}")
                 if val_metric_res>self.best_eval_metric:
                     self.best_eval_metric = val_metric_res
                 if self.sacred_ex != None:
