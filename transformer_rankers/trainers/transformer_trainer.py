@@ -43,6 +43,7 @@ class TransformerTrainer():
                  validate_every_steps=-1, max_grad_norm=0.5, 
                  validation_metric='ndcg_cut_10', num_training_instances=-1):
 
+        self.best_model_path =  "./best_model"
         self.num_ns_eval = num_ns_eval
         self.task_type = task_type
         self.tokenizer = tokenizer
@@ -158,6 +159,7 @@ class TransformerTrainer():
                 val_metric_res = res[self.validation_metric]
                 logging.info(f"Validation metric: {val_metric_res}")
                 if val_metric_res>self.best_eval_metric:
+                    torch.save(self.model.state_dict(), self.best_model_path)
                     self.best_eval_metric = val_metric_res
                 if self.sacred_ex != None:
                     self.sacred_ex.log_scalar(self.validation_metric+"_by_epoch", val_metric_res, epoch+1)
@@ -166,6 +168,8 @@ class TransformerTrainer():
                     wandb.log({'epoch': epoch+1, self.validation_metric+"_by_epoch" : val_metric_res})
                     wandb.log({'epoch': epoch+1, "avg_loss_by_epoch" : total_loss/total_steps})
                 epoch_batches_tqdm.set_description("Epoch {} ({}: {:3f}), steps".format(epoch, self.validation_metric, val_metric_res))
+        self.model.load_state_dict(torch.load(self.best_model_path))
+
 
     def predict(self, loader):
         """
