@@ -41,7 +41,8 @@ class TransformerTrainer():
                  num_ns_eval, task_type, tokenizer, validate_every_epochs,
                  num_validation_batches, num_epochs, lr, sacred_ex,
                  validate_every_steps=-1, max_grad_norm=0.5, 
-                 validation_metric='ndcg_cut_10', num_training_instances=-1):
+                 validation_metric='ndcg_cut_10', num_training_instances=-1,
+                 optimizer_class=optim.Adam):
 
         self.best_model_path =  "./best_model"
         self.num_ns_eval = num_ns_eval
@@ -70,7 +71,7 @@ class TransformerTrainer():
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.test_loader = test_loader
-        self.optimizer = optim.Adam(self.model.parameters(),
+        self.optimizer = optimizer_class(self.model.parameters(),
                                     lr=self.lr)
         self.max_grad_norm = max_grad_norm
 
