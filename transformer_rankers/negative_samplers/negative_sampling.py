@@ -65,6 +65,53 @@ class RandomNegativeSampler():
             sampled = [d for d in random.sample(self.candidates, self.num_candidates_samples) if d not in relevant_docs]
         return sampled, [random.uniform(0, 0.99) for i in range(len(sampled))], was_relevant_sampled, relevant_doc_rank
 
+class RerankingNegativeSampler():
+    """
+    Randomly sample candidates from a list of candidates for each query.
+    Args:
+        candidates: list of str containing the pre-selected candidates
+        num_candidates_samples: int containing the number of negative samples for each query.
+    """
+    def __init__(self, candidates, num_candidates_samples, seed=None):
+        self.candidates = candidates.copy(deep=True)
+        self.num_candidates_samples = num_candidates_samples
+        self.name = "RerankingNegativeSampler"
+        self.seed = seed
+
+    def sample(self, query_str, relevant_docs):
+        """
+        Samples from a list of candidates randomly.
+        
+        If the samples match the relevant doc, 
+        then removes it and re-samples.
+        Args:
+            query_str: the str of the query. Not used here.
+            relevant_docs: list with the str of the relevant documents, to avoid sampling them as negative sample.
+        Returns:
+            A triplet containing the list of negative samples, 
+            whether the method had retrieved the relevant doc and 
+            if yes its rank in the list.
+        """
+        sampled_initial = self.candidates[self.candidates['text_left'] == query_str]
+        if self.seed:
+          sampled_initial = sampled_initial[sampled_initial["label"] == 0].sample(frac=1, random_state=self.seed)
+        else:
+          sampled_initial = sampled_initial[sampled_initial["label"] == 0].sample(frac=1)
+
+        sampled_initial = list(sampled_initial['text_right'])
+        sampled_initial = sampled_initial[:self.num_candidates_samples]
+
+        was_relevant_sampled = False
+        relevant_doc_rank = -1
+        sampled = []
+        for i, d in enumerate(sampled_initial):
+            if d in relevant_docs:
+                was_relevant_sampled = True
+                relevant_doc_rank = i
+            else:
+                sampled.append(d)
+        return sampled, was_relevant_sampled, relevant_doc_rank, []
+    
 if PYSERINI_USABLE:
     class BM25NegativeSamplerPyserini():
         """
